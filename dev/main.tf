@@ -168,16 +168,6 @@ resource "aws_route_table_association" "rt_associate_private_3_2" {
   route_table_id = aws_route_table.route_table_private_nat_1.id
 }
 
-resource "aws_route_table_association" "rt_associate_private_4_1" {
-  subnet_id      = aws_subnet.private_subnet_4.id
-  route_table_id = aws_route_table.route_table_private_nat_1.id
-}
-
-resource "aws_route_table_association" "rt_associate_private_4_2" {
-  subnet_id      = aws_subnet.private_subnet_4.id
-  route_table_id = aws_route_table.route_table_private_nat_2.id
-}
-
 # Security Group
 
 
@@ -210,20 +200,6 @@ resource "aws_security_group" "HTTP" { # Front-End Load Balancer SG
   }]
 
 }
-
-
-# Autoscale Group (APP)
-
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy
-resource "aws_appautoscaling_target" "application_target" {
-  max_capacity = 4
-  min_capacity = 1
-  resource_id = ""
-  scalable_dimension = ""
-  service_namespace = ""
-  
-}
-
 
 # Load Balancer
 
@@ -261,4 +237,92 @@ resource "aws_lb_listener" "Front-End" {
     target_group_arn = aws_lb_target_group.Front-End.id
     type             = "forward"
   }
+}
+
+# IAM Role
+
+resource "aws_iam_role" "eks_role" {    # IAM Role for EKS
+  name = "eks-cluster-role"
+  
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement":[
+    {
+    "Effect": "Allow",
+    "Principal": {
+      "Service": "eks.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+  }
+  ]
+}
+POLICY
+}
+
+# resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/aws-service-role/AmazonEKSServicePolicy"
+#   role = aws_iam_role.eks_role.name
+  
+# }
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role = aws_iam_role.eks_role.name
+  
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+  role = aws_iam_role.eks_role.name
+  
+}
+
+resource "aws_iam_role_policy_attachment" "AWSServiceRoleForAmazonEKSNodegroup" {
+  policy_arn = "arn:aws:iam::aws:policy/aws-service-role/AWSServiceRoleForAmazonEKSNodegroup"
+  role = aws_iam_role.eks_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSServiceRolePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/aws-service-role/AmazonEKSServiceRolePolicy"
+  role = aws_iam_role.eks_role.name
+}
+
+# EKS
+
+resource "aws_eks_cluster" "eks_cluster" {
+  name = "cluster"
+  role_arn = aws_iam_role.eks_role.arn
+
+  vpc_config {
+    subnet_ids = [aws_subnet.private_subnet_3.id, aws_subnet.private_subnet_4.id]
+  }
+
+
+}
+
+resource "aws_eks_node_group" "eks_node_group" {
+  cluster_name = aws_eks_cluster.eks_cluster.name
+  node_group_name = "eks-node-group"
+  node_role_arn = aws_iam_role.eks_role.arn
+  subnet_ids = [ aws_subnet.private_subnet_3.id, aws_subnet.private_subnet_4.id ]
+
+  scaling_config {
+    desired_size = 2
+    max_size = 2
+    min_size = 2
+  }
+
+  update_config {
+    max_unavailable = 2
+  }
+
+  depends_on = [
+    # aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
+    aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
+    aws_iam_role_policy_attachment.AmazonEKSVPCResourceController,
+    aws_iam_role_policy_attachment.AmazonEKSServiceRolePolicy,
+    aws_iam_role_policy_attachment.AWSServiceRoleForAmazonEKSNodegroup
+  ]
+  
 }
