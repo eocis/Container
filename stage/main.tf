@@ -1,3 +1,4 @@
+# Use Terraform Cloud
 terraform {
   backend "remote" {
     organization = "example-org-68bd7a"
@@ -28,45 +29,40 @@ locals {
   cluster_name = "EKS-cluster"
 }
 
-# Modules (VPC)
-
+# VPC Module
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
   name = "vpc"
-  cidr = "10.0.0.0/16"
+  cidr = "${var.vpc_cidr}"
 
-  azs             = ["ap-northeast-2a", "ap-northeast-2c"]
+  azs             = var.aws_azs
   private_subnets = ["${var.subnets[2]}", "${var.subnets[3]}"]
   public_subnets  = ["${var.subnets[0]}", "${var.subnets[1]}"]
 
   enable_nat_gateway = true
-  enable_vpn_gateway = true
 
   tags = {
     Terraform = "true"
-    Environment = "dev"
-
-  # ALB Ingress 설정을 위한 클러스터 이름 설정
-  clusterName = local.cluster_name
   }
+  # Subnet Tagging for EKS Cluster
+  private_subnet_tags = merge(
+      {
+        "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+        "kubernetes.io/role/elb" = 1
+      }
+    )
 
 }
 
-data "aws_eks_cluster" "eks" {
-  name = module.eks.cluster_id
-}
-
-data "aws_eks_cluster_auth" "eks" {
-  name = module.eks.cluster_id
-}
-
+# Kubernetes Setup
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.eks.token
 }
 
+# EKS Module
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
 
@@ -74,68 +70,35 @@ module "eks" {
   cluster_name    = local.cluster_name
   vpc_id          = module.vpc.vpc_id
   subnets         = [module.vpc.private_subnets[0],module.vpc.private_subnets[1]]
+  manage_aws_auth = true
 
-  worker_groups = [
-    {
-      instance_type = "t3.medium"
-      asg_desired_capacity = 2
-      asg_max_size = 4
-      asg_min_size = 2
-      target_group_arns = module.alb.target_group_arns
-    }
+  workers_group_defaults = {
+    instance_type                     = "${var.eks_instance_type}"
+    root_volume_size                  = "${var.eks_instance_root_volume_size}"
+    root_volume_type                  = "${var.eks_instance_root_volume_type}"
+  }
 
-  
-  ]
-}
-
-module "alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "~> 6.0"
-
-  name = "my-alb"
-
-  load_balancer_type = "application"
-
-  vpc_id             = module.vpc.vpc_id
-  subnets            = [module.vpc.public_subnets[0],module.vpc.public_subnets[1]]
-  security_groups    = ["${module.alb-sg.security_group_id}"]
-
-  target_groups = [
-    {
-      name_prefix      = "pref-"
-      backend_protocol = "HTTP"
-      backend_port     = 443
-      target_type      = "instance"
-    }
-  ]
-
-  http_tcp_listeners = [
-    {
-      port               = 443
-      protocol           = "HTTP"
-      target_group_index = 0
-    }
-  ]
-
-  tags = {
-    Environment = "Test"
+  node_groups = {
+      first = {
+          desired_capacity = "${var.node_group_desired_capacity}"
+          max_capacity = "${var.node_group_max_capacity}"
+          min_capacity = "${var.node_group_min_capacity}"
+      }
   }
 }
 
-module "alb-sg" {
-  source = "terraform-aws-modules/security-group/aws"
+# Ingress-Controller Policy Attachment
+resource "aws_iam_role_policy" "worker_policy" {
+  name   = "eks-worker-policy"
+  role   = module.eks.worker_iam_role_name
+  policy = data.http.worker_policy.body
+}
 
-  name        = "alb-sg"
-  vpc_id      = module.vpc.vpc_id
+# Use AWS-ALB-Ingress-Controller Policy
+data "http" "worker_policy" {
+  url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.1/docs/install/iam_policy.json"
 
-  ingress_cidr_blocks      = ["0.0.0.0/0"]
-  ingress_rules            = ["https-443-tcp"]
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = "10.0.0.0/16"
-    }
-  ]
+  request_headers = {
+    Accept = "application/json"
+  }
 }
