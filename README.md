@@ -10,7 +10,7 @@
 
 > ## How to Use?
 
-Edit: /stage/k8s/apply.yml (line 59 : host)  
+Edit: /stage/k8s/apply.yml (line 23 : image, line 56 : ACM(cert_arn), line 59 : host)  
 Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 
@@ -45,6 +45,9 @@ Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 # NordPort 확인
 > kubectl describe service web-app-np -n kube-example
+
+# ECR Repository 확인
+> aws ecr describe-images --repository-name <ECR-Repository-Name>
 ```
 
 > ## About Code
