@@ -52,7 +52,7 @@ metadata:
     alb.ingress.kubernetes.io/inbound-cidrs: '0.0.0.0/0'
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
-    alb.ingress.kubernetes.io/subnets: "subnet-0f9bc0afadb549a18,subnet-04e5e197b9c8a92a5"
+    alb.ingress.kubernetes.io/subnets: "subnet-00ba7be3726910515,subnet-0ecfe6f55eb5c53ff"
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:626426825780:certificate/49813f08-0c1f-4f57-9cf2-1d4a72b5baa5
 spec:
   rules:

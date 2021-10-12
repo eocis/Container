@@ -25,6 +25,13 @@ provider "aws" {
   shared_credentials_file = "~/.aws/credentials" # AWS Profile Path
 }
 
+# Kubernetes
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.eks.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.eks.token
+}
+
 locals {
   cluster_name = "EKS-cluster"
 }
@@ -53,13 +60,6 @@ module "vpc" {
       }
     )
 
-}
-
-# Kubernetes Setup
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.eks.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.eks.token
 }
 
 # EKS Module

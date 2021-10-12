@@ -34,16 +34,6 @@ variable "aws-eks-node-ami" {
   
 }
 
-variable "lb_tg_arn" {
-    type = string
-    default = ""
-}
-
-variable "lb_tg_name" {
-    type = string
-    default = ""
-}
-
 variable "eks_instance_type" {
     type = string
     default = "t3.medium"
