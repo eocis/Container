@@ -16,7 +16,7 @@
 
 > ## How to Use?
 
-Edit: /stage/k8s/apply.yml (line 25 : image, line 61 : host)  <b># 10/13 update</b>
+Edit: /stage/k8s/apply.yml (line 25 : image, line 61 : host)  <b># 10/13 update</b>  
 Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 
