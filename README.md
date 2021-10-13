@@ -16,13 +16,13 @@
 
 > ## How to Use?
 
-Edit: /stage/k8s/apply.yml (line 25 : image, line 61 : host)  <b># 10/13 update</b>  
+Edit: /stage/kube_export.tf (line 25 : image, line 61 : host)  <b># 10/13 update</b>  
 Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 
 ```sh
 > terraform apply --auto-approve
-# output결과물을 k8s 디렉토리 내부 apply.yml Subnet에 대입
+~~ # output결과물을 k8s 디렉토리 내부 apply.yml Subnet에 대입 ~~ # 10/13 update
 
 > aws eks --region <region> update-kubeconfig --name <cluster_name>
 
