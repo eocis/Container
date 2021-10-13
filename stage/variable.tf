@@ -23,6 +23,11 @@ variable "subnets" {
   }
 }
 
+variable "domain" {
+    type = string
+    default = "eocis.app"
+}
+
 variable "aws-eks-node" {
     type = string
     default = "amazon-eks-node-1.21-v20210914"

@@ -8,9 +8,15 @@
 ![image EKS1](./src/eks1.png)  
 ![image EKS2](./src/eks2.png)
 
+> ## 10/13 Update
+
+- ACM arn을 로컬 변수가 아닌 Data Resource로 불러온 값을 사용합니다.
+- kubernetes yaml파일에 직접 추가해야하는 Annotation 항목을 자동으로 채웁니다.
+- Terraform local_file Resource로 kubernetes yaml파일을 export합니다.
+
 > ## How to Use?
 
-Edit: /stage/k8s/apply.yml (line 23 : image, line 56 : ACM(cert_arn), line 59 : host)  
+Edit: /stage/k8s/apply.yml (line 25 : image, line 61 : host)  <b># 10/13 update</b>
 Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 
@@ -95,10 +101,11 @@ Controlled By:  ReplicaSet/web-app-ddbf7568c
 - EKS 최적화 EC2 AMI 정보
 - EKS Cluster Name 정보
 - EKS Cluster Authority 정보
+- ACM 인증서 ARN 정보 <b># 10/13 update</b>
 
-### [/stage/output.tf]
+~~[/stage/output.tf]~~ <b># 10/13 update</b>
 
-- Ingress ALB 설정에 필요한 Subnet ids
+~~- Ingress ALB 설정에 필요한 Subnet ids~~
 
 ### [/stage/variable.tf]
 
@@ -113,10 +120,15 @@ Controlled By:  ReplicaSet/web-app-ddbf7568c
 - EKS Node Group Desired Capacity
 - EKS Node Group Max Capacity
 - EKS Node Group Min Capacity
+- Domain Name   <b># 10/13 update</b>
 
 ### [/stage/kubeconfig_<cluster_name>]
 
 - AWS EKS Cluster kubeconfig 파일 (~/.kube/config)
+
+### [/stage/kube_export.tf]     <b># 10/13 update</b>
+
+- Annotation 항목을 자동으로 입력 (CI/CD환경에서는 Repo를 분리하므로 이렇게 사용하지 않습니다.)
 
 ### [/stage/k8s/apply.yml]
 
@@ -145,6 +157,5 @@ Controlled By:  ReplicaSet/web-app-ddbf7568c
     - spec.rules.host: kube.eocis.app
     - spec.rules.http.paths.backend.service.name: web-app-np
     - spec.rules.http.paths.backend.service.port.number: 443
-
 
 참고: https://kubernetes-sigs.github.io/aws-load-balancer-controller
