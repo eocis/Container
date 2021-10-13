@@ -50,6 +50,33 @@ Edit: /stage/main.tf (line 1 ~ 11: delete)
 > aws ecr describe-images --repository-name <ECR-Repository-Name>
 ```
 
+> ## 오브젝트 확인
+
+```
+# Service(NordPort)가 지정하는 Pod확인
+> kubectl get svc -o wide -n <NameSpace_Name>
+
+➜  kubectl get svc -o wide -n kube-example
+NAME         TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE   SELECTOR
+web-app-np   NodePort   10.97.187.91   <none>        443:30225/TCP   45m   app=web-app
+
+
+# SELECTOR Label 확인 (app=web-app)
+> kubectl describe po -n <NameSapce_Name> | grep "<Label_Select>\|Name" | grep -v "ConfigMapName\|Namespace" 
+
+➜  kubectl describe po -n kube-example | grep "app=web-app\|Name" | grep -v "ConfigMapName\|Namespace"
+Name:         web-app-ddbf7568c-2nfcf
+Labels:       app=web-app
+Name:         web-app-ddbf7568c-42rs2
+Labels:       app=web-app
+
+# Pod가 속한 Replicas 확인
+> kubectl describe po <Pod_Name> -n <NameSpace_Name> | grep "Controlled By\|ReplicaSet"
+
+➜  kubectl describe po web-app-ddbf7568c-2nfcf -n kube-example | grep "Controlled By\|ReplicaSet"
+Controlled By:  ReplicaSet/web-app-ddbf7568c
+```
+
 > ## About Code
 
 ### [/stage/main.tf]
