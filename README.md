@@ -91,7 +91,7 @@ Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 - AWS EKS Cluster kubeconfig 파일 (~/.kube/config)
 
-### [/stage/k8s/sample_kube.yml]
+### [/stage/k8s/apply.yml]
 
 - NameSpace: kube-example
     - Default NameSpace가 아닌 별도의 NameSpace를 만들어 구축
