@@ -22,7 +22,7 @@ spec:
         app: web-app
     spec:
       containers:
-      - image: 626426825780.dkr.ecr.ap-northeast-2.amazonaws.com/kube-images:2048
+      - image: alexwhen/docker-2048
         imagePullPolicy: Always
         name: web-app-container
         ports:
