@@ -22,7 +22,6 @@ Edit: /stage/main.tf (line 1 ~ 11: delete)
 
 ```sh
 > terraform apply --auto-approve
-~~ # output결과물을 k8s 디렉토리 내부 apply.yml Subnet에 대입 ~~ # 10/13 update
 
 > aws eks --region <region> update-kubeconfig --name <cluster_name>
 
