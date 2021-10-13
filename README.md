@@ -128,7 +128,7 @@ Controlled By:  ReplicaSet/web-app-ddbf7568c
 
 ### [/stage/kube_export.tf]     <b># 10/13 update</b>
 
-- Annotation 항목을 자동으로 입력 (CI/CD환경에서는 Repo를 분리하므로 이렇게 사용하지 않습니다.)
+- Annotation 항목을 자동으로 입력 후 export (CI/CD환경에서는 Repo를 분리하므로 이렇게 사용하지 않습니다.)
 
 ### [/stage/k8s/apply.yml]
 
